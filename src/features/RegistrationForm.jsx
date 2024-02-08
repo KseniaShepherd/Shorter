@@ -1,25 +1,29 @@
-import React, {useState} from 'react';
-import {useDispatch} from 'react-redux';
-import {useNavigate} from 'react-router-dom';
-import {Formik, Form, Field, ErrorMessage} from 'formik';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import {loginUser, registerUser} from '../store/reducers/authSlice';
+import { loginUser, registerUser } from '../store/reducers/authSlice';
 
-import {Visibility, VisibilityOff} from '@mui/icons-material';
-import {Button, TextField, Typography, Box, IconButton, InputAdornment} from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { Button, TextField, Typography, Box, IconButton, InputAdornment } from '@mui/material';
+
 const RegistrationForm = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const error = useSelector(state => state.auth.error); // Получение ошибки из состояния
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const initialValues = {
+        username: '', // Добавлено поле username в initialValues
         password: '',
         confirmPassword: '',
     };
 
     const validationSchema = Yup.object({
+        username: Yup.string().required('Имя пользователя обязательно'),
         password: Yup.string()
             .required('Пароль обязателен')
             .min(8, 'Пароль должен содержать минимум 8 символов')
@@ -51,6 +55,10 @@ const RegistrationForm = () => {
     const handleToggleConfirmPasswordVisibility = () => {
         setShowConfirmPassword(!showConfirmPassword);
     };
+
+    useEffect(() => {
+        // Логика для обнаружения ошибки и ее обработки, если необходимо
+    }, [error]); // Передаем error в массив зависимостей, чтобы useEffect вызывался при изменении error
 
     return (
         <Box sx={{maxWidth: 400, margin: 'auto'}}>
@@ -125,11 +133,12 @@ const RegistrationForm = () => {
                         <Button type="submit" variant="contained" color="primary" disabled={!isValid}>
                             Зарегистрироваться
                         </Button>
+                        {error && <div className="error">{error}</div>}
                     </Form>
                 )}
             </Formik>
         </Box>
     );
-};
+}
 
 export default RegistrationForm;

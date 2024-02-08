@@ -7,15 +7,14 @@ const initialState = {
     error: null,
     accessToken: null,
     isLoggedIn: false,
-
 };
 
-export const registerUser = createAsyncThunk('auth/registerUser', async ({username, password}) => {
+export const registerUser = createAsyncThunk('auth/registerUser', async ({username, password}, {rejectWithValue}) => {
     try {
         const response = await axios.post(`https://front-test.hex.team/api/register?username=${username}&password=${password}`);
         return response.data;
     } catch (error) {
-        return {error: error.response.data};
+        return rejectWithValue(error.response.data); // Возвращаем только данные ошибки
     }
 });
 
@@ -27,6 +26,7 @@ export const loginUser = createAsyncThunk('auth/loginUser', async ({username, pa
         return {error: error.response.data};
     }
 });
+
 const authSlice = createSlice({
     name: 'auth',
     initialState,
@@ -52,7 +52,11 @@ const authSlice = createSlice({
             })
             .addCase(registerUser.rejected, (state, action) => {
                 state.loading = false;
-                state.error = action.payload.errore.detail;
+                if (action.payload.detail.includes("already exists")) {
+                    state.error = "Пользователь с таким именем уже существует";
+                } else {
+                    state.error = action.payload.detail;
+                }
             })
             .addCase(loginUser.pending, (state) => {
                 state.loading = true;
